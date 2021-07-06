@@ -6,7 +6,7 @@ std::vector<int> GetInput(std::string input_file)
 	if(!Input)
 	{
 		std::cout << "Can't read file: " << input_file << "\n";
-		exit(1);
+		exit(0);
 	}
 	
 	int tmp;
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 	Encode.close();
 
 	// Run MiniSat encode out
-	std::string str_run = MiniSat + ' ' + "encode" + ' ' + output_file;
+	std::string str_run = MiniSat + ' ' + "encode" + " out_tmp";
 	const char *run = str_run.c_str();
 	system(run);
 
@@ -179,14 +179,9 @@ int main(int argc, char *argv[])
 	system(del);
 	
 	// Decode
-	std::ifstream Decode(output_file);
+	std::ifstream Decode("out_tmp");
 	std::string ss; 
 	Decode >> ss; // Line 1
-	if(ss == "UNSAT") 
-	{
-		std::cout << "NO" << "\n";
-		return 0;
-	}
 
 	std::vector<std::vector<int>> re(n, std::vector<int>(n));
 	int i=0, j=0, x;
@@ -210,6 +205,11 @@ int main(int argc, char *argv[])
 
 	Decode.close();
 
+	// Delete out_tmp
+	std::string str_tmp_del = "rm out_tmp";
+	const char *tmp_del = str_tmp_del.c_str();
+	system(tmp_del);
+
 	// Print
 	for(int i=0; i<n; i++)
 	{
@@ -219,6 +219,25 @@ int main(int argc, char *argv[])
 		}
 		std::cout << "\n";
 	}
+
+	// Write result into output_file
+	std::ofstream Out(output_file);
+	if(ss == "UNSAT") 
+	{
+		std::cout << "NO" << "\n";
+		Out << "NO" << "\n";
+		return 0;
+	}
+	else
+	{
+		for(int i=0; i<n; i++)
+		{
+			for(int j=0; j<n; j++)
+				Out << re[i][j] << ' ';
+			Out << "\n";
+		}
+	}
+	Out.close();
 
 	return 0;
 }
